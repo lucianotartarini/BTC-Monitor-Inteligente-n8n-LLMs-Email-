@@ -1,0 +1,1126 @@
+{
+  "name": "Entrega Final: IA Analista del precio de Bitcoin",
+  "nodes": [
+    {
+      "parameters": {
+        "jsCode": "const priceNow = Number($node[\"Normalización del precio\"].json.price_now);\nconst pricePrev = Number($json.value);\n\nconst delta = priceNow - pricePrev;\nconst pctChange = (delta / pricePrev) * 100;\n\nreturn [{\n  price_now: priceNow,\n  price_prev: pricePrev,\n  delta: Number(delta.toFixed(2)),\n  pct_change: Number(pctChange.toFixed(2)),\n  pct_abs: Math.abs(pctChange),\n  ts_now: $node[\"Normalización del precio\"].json.ts_now\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        800,
+        96
+      ],
+      "id": "759e4429-f779-4765-a118-3c2bd5013ca8",
+      "name": "Calcular variación 1h"
+    },
+    {
+      "parameters": {
+        "url": "https://api.coinbase.com/v2/prices/BTC-USD/spot",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -64,
+        -32
+      ],
+      "id": "55668f59-5e81-4070-b543-b18bef9ccf7b",
+      "name": "API Coinbase",
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "3575ff5e-26b5-460e-be34-76ee10b30bd6",
+              "leftValue": "={{ Number($json.value) }}\n",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        592,
+        -32
+      ],
+      "id": "be1bf09c-e094-4cca-be87-3f31b83a3b9c",
+      "name": "Primera ejecución?"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "1odC0rMHLJKMIySTbKxIPqFrw2xG40bybGNORLidNfLg",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "state",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "row_number": "={{ $json.row_number }}\n",
+            "value": "={{$node[\"Normalización del precio\"].json.price_now }}",
+            "updated_at": "={{$node[\"Normalización del precio\"].json.ts_now}}\n"
+          },
+          "matchingColumns": [
+            "row_number"
+          ],
+          "schema": [
+            {
+              "id": "key",
+              "displayName": "key",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "value",
+              "displayName": "value",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "updated_at",
+              "displayName": "updated_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        800,
+        -144
+      ],
+      "id": "b39e5599-a0e1-4c19-9dfc-230fae183cf7",
+      "name": "Primera actualización de datos",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "9hdJKFfEKUC4VsEA",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "1odC0rMHLJKMIySTbKxIPqFrw2xG40bybGNORLidNfLg",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "state",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "value": "={{ $node[\"Normalización del precio\"].json.price_now }}",
+            "updated_at": "={{ $node[\"Normalización del precio\"].json.ts_now }}",
+            "row_number": "={{ $node[\"Normalizar array\"].json.row_number }}\n"
+          },
+          "matchingColumns": [
+            "row_number"
+          ],
+          "schema": [
+            {
+              "id": "key",
+              "displayName": "key",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "value",
+              "displayName": "value",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "updated_at",
+              "displayName": "updated_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        2784,
+        80
+      ],
+      "id": "6b3318be-9563-4f55-8ae7-6337b7f6272d",
+      "name": "Actualización de datos",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "9hdJKFfEKUC4VsEA",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1odC0rMHLJKMIySTbKxIPqFrw2xG40bybGNORLidNfLg",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "state",
+          "mode": "name"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "key",
+              "lookupValue": "last_btc_usd"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        272,
+        -32
+      ],
+      "id": "1f892804-bfec-448e-9178-3ef033696032",
+      "name": "Leer la fila existente",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "9hdJKFfEKUC4VsEA",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -224,
+        -32
+      ],
+      "id": "506ebb82-9abe-4ac9-8679-113bd0dcced3",
+      "name": "Trigger c/1h"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "7d7410ac-94fb-4c02-b000-ae8e37401ccb",
+              "name": "pair",
+              "value": "BTC-USD",
+              "type": "string"
+            },
+            {
+              "id": "399e4f02-e6ad-4afb-b57d-dcc0fa3e4834",
+              "name": "price_now",
+              "value": "={{ Number($json.data.amount) }}\n",
+              "type": "number"
+            },
+            {
+              "id": "db42ba26-09fa-40a4-9e35-f0d716ac9096",
+              "name": "ts_now",
+              "value": "={{ $now.toISO() }}",
+              "type": "string"
+            },
+            {
+              "id": "1bc8f068-4f1d-40df-880b-67ab31ff5c1c",
+              "name": "source",
+              "value": "coinbase_spot",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        112,
+        -32
+      ],
+      "id": "afa0180d-0c0c-4c6a-a167-0e2316cb414b",
+      "name": "Normalización del precio"
+    },
+    {
+      "parameters": {
+        "sendTo": "tartarluc@gmail.com",
+        "subject": "BTC Monitor inicializado",
+        "emailType": "text",
+        "message": "=El monitor de Bitcoin fue inicializado correctamente.\n\nPrecio actual registrado: USD {{ $node[\"Normalización del precio\"].json.price_now }}\n\nA partir de la próxima ejecución se calculará la variación porcentual horaria y se ofrecerá un analisis.\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        976,
+        -144
+      ],
+      "id": "c142c5b7-f6a2-461f-b8a4-0db82cec288c",
+      "name": "Email inicialización",
+      "webhookId": "75df4144-168f-4299-806e-0ed8b9bea206",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "pGaSwAZn8f3TwBEm",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// El nodo 4 devuelve un array con 1 fila\nconst row = Array.isArray($json) ? $json[0] : $json;\n\nif (!row || row.row_number == null) {\n  throw new Error('No se encontró row_number en state (¿existe la fila last_btc_usd?)');\n}\n\nreturn row;\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        432,
+        -32
+      ],
+      "id": "72982390-f6f0-48db-9ecc-1b37860d4616",
+      "name": "Normalizar array"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c7b9cd0e-c856-40f6-a0f2-c0683a7cbd90",
+              "name": "threshold_pct",
+              "value": 1,
+              "type": "number"
+            },
+            {
+              "id": "37c2debb-3c16-4ea5-89de-91381960138e",
+              "name": "price_current_usd",
+              "value": "={{ $json.price_now }}",
+              "type": "number"
+            },
+            {
+              "id": "9319361b-6ccb-47c8-87ac-4b049e2cae3b",
+              "name": "price_previous_usd",
+              "value": "={{ $json.price_prev }}",
+              "type": "number"
+            },
+            {
+              "id": "6cefad2e-c684-4b17-8a7a-ac22cac26366",
+              "name": "change_1h_pct",
+              "value": "={{ $json.pct_change }}",
+              "type": "number"
+            },
+            {
+              "id": "070aa48a-625e-4738-bdd4-f5d92d41f7e7",
+              "name": "abs_change_1h_pct",
+              "value": "={{ $json.pct_abs }}",
+              "type": "number"
+            },
+            {
+              "id": "93019939-5743-4780-80b7-430e1539da1b",
+              "name": "diff_usd",
+              "value": "={{ $json.delta }}",
+              "type": "number"
+            },
+            {
+              "id": "cebb5b44-2b8a-49e6-87ef-b7919d6d3e36",
+              "name": "timestamp_now",
+              "value": "={{ $json.ts_now }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        976,
+        96
+      ],
+      "id": "a3e4dbde-b1c9-401a-b849-873f7f8d308d",
+      "name": "CFG - Threshold & Payload IA",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-2.5-flash",
+          "mode": "list",
+          "cachedResultName": "models/gemini-2.5-flash"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=abs_change_1h_pct={{ $json.abs_change_1h_pct }}\nchange_1h_pct={{ $json.change_1h_pct }}\nthreshold_pct={{ $json.threshold_pct }}\n\nReglas:\n- status=\"ALERTA\" si abs_change_1h_pct >= threshold_pct, si no \"NORMAL\"\n- direction=\"UP\" si change_1h_pct>0, \"DOWN\" si <0, \"FLAT\" si =0\n\nRespondé solo con el JSON."
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {
+          "includeMergedResponse": true,
+          "systemMessage": "Respondé únicamente JSON válido en UNA sola línea. Prohibido Markdown, backticks o texto fuera del JSON. Formato exacto: {\"status\":\"NORMAL\",\"direction\":\"UP\"} Valores permitidos: - status: \"ALERTA\" o \"NORMAL\" - direction: \"UP\" | \"DOWN\" | \"FLAT\"",
+          "maxOutputTokens": 40,
+          "temperature": 0,
+          "thinkingBudget": 0
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        1152,
+        96
+      ],
+      "id": "ed0864d1-150b-4d20-84e1-f458f02eb9fc",
+      "name": "LLM1 - Classifier (Reglado)",
+      "retryOnFail": true,
+      "waitBetweenTries": 2000,
+      "credentials": {
+        "googlePalmApi": {
+          "id": "PBhv4KjgViTQquwP",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Extraer el texto JSON desde la respuesta de Gemini\nconst raw = $json?.content?.parts?.[0]?.text;\n\nif (!raw) {\n  throw new Error('LLM1: no se encontró content.parts[0].text');\n}\n\nlet obj;\ntry {\n  obj = JSON.parse(raw);\n} catch (e) {\n  throw new Error(`LLM1: JSON inválido: ${raw}`);\n}\n\n// Validación mínima (robustez)\nconst allowedStatus = new Set(['ALERTA', 'NORMAL']);\nconst allowedDirection = new Set(['UP', 'DOWN', 'FLAT']);\n\nif (!allowedStatus.has(obj.status) || !allowedDirection.has(obj.direction)) {\n  throw new Error(`LLM1: valores inesperados: ${JSON.stringify(obj)}`);\n}\n\n// Devolvemos campos listos para el IF\nreturn [{\n  json: {\n    status: obj.status,\n    direction: obj.direction,\n    llm_raw: raw\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1440,
+        96
+      ],
+      "id": "df0d266e-ce4e-4a6d-9e46-f019a4cb4c9c",
+      "name": "FN - Parse LLM1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "d977a54c-9bda-4f8a-8476-0dcd4fcdbccf",
+              "leftValue": "={{ $json.status }}",
+              "rightValue": "ALERTA",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1584,
+        96
+      ],
+      "id": "bec7add8-b057-46f6-801b-e24808bc998c",
+      "name": "IF - ¿Alerta? (LLM1)"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-2.5-flash",
+          "mode": "list",
+          "cachedResultName": "models/gemini-2.5-flash"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=Datos 1h:\n- price_current_usd: {{ $node[\"CFG - Threshold & Payload IA\"].json.price_current_usd }}\n- price_previous_usd: {{ $node[\"CFG - Threshold & Payload IA\"].json.price_previous_usd }}\n- diff_usd: {{ $node[\"CFG - Threshold & Payload IA\"].json.diff_usd }}\n- change_1h_pct: {{ $node[\"CFG - Threshold & Payload IA\"].json.change_1h_pct }}\n- direction_1h: {{ $node[\"FN - Parse LLM1\"].json.direction }}\n\nContexto 24h (CoinGecko):\n- high_24h_usd: {{ $node[\"FN - Compute 24h Features\"].json.high_24h_usd }}\n- low_24h_usd: {{ $node[\"FN - Compute 24h Features\"].json.low_24h_usd }}\n- range_24h_pct: {{ $node[\"FN - Compute 24h Features\"].json.range_24h_pct }}\n- pos_24h: {{ $node[\"FN - Compute 24h Features\"].json.pos_24h }}\n\nTareas (obligatorio cumplir):\n1) summary: 1 línea. Debe citar 2 números: change_1h_pct y diff_usd.\n2) context_24h: 1 línea usando range_24h_pct y pos_24h (explicá si está cerca del máximo o mínimo del día).\n3) risk_flags: EXACTAMENTE 2 strings cortos (máx 10 palabras cada uno).\n4) scenario_next_1h: 1 línea (condicional, sin afirmar hechos).\n5) suggested_action: 1 línea prudente (informativa).\n\nRespondé SOLO con el JSON en una sola línea con este formato exacto:\n{\"summary\":\"\",\"context_24h\":\"\",\"risk_flags\":[\"\",\"\"],\"scenario_next_1h\":\"\",\"suggested_action\":\"\"}"
+            }
+          ]
+        },
+        "simplify": false,
+        "builtInTools": {},
+        "options": {
+          "includeMergedResponse": true,
+          "systemMessage": "Respondé SIEMPRE en español. REGLA ABSOLUTA: devolvé únicamente JSON válido en UNA sola línea. Prohibido Markdown, backticks, títulos, frases introductorias o texto fuera del JSON. No inventes noticias/eventos; las causas deben ser hipótesis genéricas. No des asesoramiento financiero personalizado; tono informativo y prudente.  Formato EXACTO: {\"summary\":\"\",\"context_24h\":\"\",\"risk_flags\":[\"\",\"\"],\"scenario_next_1h\":\"\",\"suggested_action\":\"\"}",
+          "maxOutputTokens": 500,
+          "temperature": 0.3,
+          "thinkingBudget": 0
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        2160,
+        -80
+      ],
+      "id": "b60e4704-9205-42ff-9028-366522d28b72",
+      "name": "LLM2 - Explain & Summary (Alerta)",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "PBhv4KjgViTQquwP",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Gemini puede devolver \"content.parts\" o \"candidates[0].content.parts\"\nconst raw =\n  $json?.content?.parts?.[0]?.text ??\n  $json?.candidates?.[0]?.content?.parts?.[0]?.text ??\n  $json?.text ??\n  null;\n\nif (!raw) {\n  const keys = Object.keys($json || {});\n  throw new Error(`LLM2: no se encontró texto. Keys: ${keys.join(', ')}`);\n}\n\nconst s = String(raw).trim();\n\n// Extraer JSON { ... }\nconst match = s.match(/\\{[\\s\\S]*\\}/);\nif (!match) throw new Error(`LLM2: no devolvió JSON completo. Raw: ${s.slice(0, 200)}`);\n\nconst jsonStr = match[0];\n\nlet obj;\ntry {\n  obj = JSON.parse(jsonStr);\n} catch (e) {\n  throw new Error(`LLM2: JSON inválido: ${jsonStr}`);\n}\n\nreturn [{\n  json: {\n    summary: obj.summary ?? \"\",\n    context_24h: obj.context_24h ?? \"\",\n    risk_flags: Array.isArray(obj.risk_flags) ? obj.risk_flags : [],\n    scenario_next_1h: obj.scenario_next_1h ?? \"\",\n    suggested_action: obj.suggested_action ?? \"\",\n    llm2_raw: s\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2464,
+        -80
+      ],
+      "id": "92fbf743-d88d-47d2-9b73-6976aedcbc59",
+      "name": "FN - Parse LLM2"
+    },
+    {
+      "parameters": {
+        "sendTo": "tartarluc@gmail.com",
+        "subject": "=🚨 ALERTA BTC 1h: {{ $node[\"CFG - Threshold & Payload IA\"].json.change_1h_pct }}%",
+        "emailType": "text",
+        "message": "=🚨 ALERTA BTC (1h) — {{ $node[\"CFG - Threshold & Payload IA\"].json.change_1h_pct }}% ({{ $node[\"FN - Parse LLM1\"].json.direction }})\n\nResumen:\n{{ $json.summary }}\n\nRiesgos:\n- {{ $node[\"FN - Parse LLM2\"].json.risk_flags[0] }}\n- {{ $node[\"FN - Parse LLM2\"].json.risk_flags[1] }}\n\nAcción sugerida (informativa):\n{{ $json.suggested_action }}\n\nDatos:\nPrecio actual: USD {{ $node[\"CFG - Threshold & Payload IA\"].json.price_current_usd }}\nPrecio anterior: USD {{ $node[\"CFG - Threshold & Payload IA\"].json.price_previous_usd }}\nDiferencia: USD {{ $node[\"CFG - Threshold & Payload IA\"].json.diff_usd }}\nTimestamp: {{ $node[\"CFG - Threshold & Payload IA\"].json.timestamp_now }}\n\nContexto 24h:\n{{ $json.context_24h }}\n\nRiesgos:\n- {{ $json.risk_flags[0] }}\n- {{ $json.risk_flags[1] }}\n\nEscenario 1h:\n{{ $json.scenario_next_1h }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        2640,
+        -80
+      ],
+      "id": "a0ad4084-9a26-485c-b895-0777a71f1aed",
+      "name": "Email Alerta1",
+      "webhookId": "0574230e-0b1a-458b-8df7-f1c56fbb86d6",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "pGaSwAZn8f3TwBEm",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-2.5-flash",
+          "mode": "list",
+          "cachedResultName": "models/gemini-2.5-flash"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=change_1h_pct={{ $node[\"CFG - Threshold & Payload IA\"].json.change_1h_pct }}\ndirection={{ $node[\"FN - Parse LLM1\"].json.direction }}\n\nGenerá un insight corto (máx 12 palabras) sobre el movimiento.\nReglas:\n- Debés incluir el valor change_1h_pct exactamente como aparece (sin redondear ni inventar).\n- No podés mencionar ningún porcentaje distinto al de change_1h_pct.\n- Idioma: español.\nRespondé solo JSON en una línea:\n{\"insight\":\"...\"}"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {
+          "systemMessage": "Respondé SIEMPRE en español. Devolvé únicamente JSON válido en UNA sola línea. Prohibido texto fuera del JSON. Formato exacto: {\"insight\":\"\"} El insight debe tener máx 10 palabras. Si mencionás un porcentaje, debe ser EXACTAMENTE el valor de change_1h_pct recibido.",
+          "maxOutputTokens": 50,
+          "temperature": 0.2,
+          "thinkingBudget": 0
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        1776,
+        176
+      ],
+      "id": "88aa6d40-a16b-47fc-a7b9-236a42ec7534",
+      "name": "LLM3 - Normal Insight",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "PBhv4KjgViTQquwP",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $json?.content?.parts?.[0]?.text ?? '';\nconst s = String(raw).trim();\nconst real = String($node[\"CFG - Threshold & Payload IA\"].json.change_1h_pct.toFixed(2));\n\n// Si está vacío, devolvemos insight vacío sin romper el workflow\nif (!s) {\n  return [{ json: { insight: \"\", llm3_raw: raw, llm3_ok: false } }];\n}\n\n// Intentar extraer un JSON si vino mezclado con texto\nconst match = s.match(/\\{[\\s\\S]*\\}/);\nif (!match) {\n  // Fallback: usar el texto como insight “crudo” (recortado) en vez de fallar\n  return [{ json: { insight: s.slice(0, 80), llm3_raw: raw, llm3_ok: false } }];\n}\n\nconst jsonStr = match[0];\n\ntry {\n  const obj = JSON.parse(jsonStr);\n  return [{ json: { insight: obj.insight ?? \"\", llm3_raw: raw, llm3_ok: true } }];\n} catch (e) {\n  // Fallback: no romper el flujo\n  return [{ json: { insight: s.slice(0, 80), llm3_raw: raw, llm3_ok: false } }];\n}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2080,
+        176
+      ],
+      "id": "3990959f-b7fe-49d7-bd25-78366101defb",
+      "name": "FN - Parse LLM3"
+    },
+    {
+      "parameters": {
+        "sendTo": "tartarluc@gmail.com",
+        "subject": "=BTC 1h update: {{ $node[\"CFG - Threshold & Payload IA\"].json.change_1h_pct }}%",
+        "emailType": "text",
+        "message": "=Actualización horaria de Bitcoin (BTC)\nPrecio actual: USD {{ $node[\"CFG - Threshold & Payload IA\"].json.price_current_usd }}\nPrecio anterior: USD {{ $node[\"CFG - Threshold & Payload IA\"].json.price_previous_usd }}\nVariación 1h: {{ $node[\"CFG - Threshold & Payload IA\"].json.change_1h_pct }} %\nDirección: {{ $node[\"FN - Parse LLM1\"].json.direction }}\nTimestamp: {{ $node[\"CFG - Threshold & Payload IA\"].json.timestamp_now }}\nClasificación: {{ $node[\"FN - Parse LLM1\"].json.status }}\nInsight: {{ $node[\"FN - Parse LLM3\"].json.insight }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        2240,
+        176
+      ],
+      "id": "328da1b5-020a-4465-94b0-e8d03ca5c82e",
+      "name": "Email normal1",
+      "webhookId": "15568dae-3a46-4747-a4b7-3491fe2650d6",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "pGaSwAZn8f3TwBEm",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "https://api.coingecko.com/api/v3/coins/bitcoin?localization=false&tickers=false&market_data=true&community_data=false&developer_data=false&sparkline=false",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        1776,
+        -80
+      ],
+      "id": "c1fc0d61-c281-4aa0-98c7-fb54b9b5bb64",
+      "name": "HTTP - CoinGecko 24h",
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const P = Number($node[\"CFG - Threshold & Payload IA\"].json.price_current_usd);\nconst H = Number($json.market_data.high_24h.usd);\nconst L = Number($json.market_data.low_24h.usd);\n\nconst rangeUsd = H - L;\nconst rangePct = rangeUsd > 0 ? (rangeUsd / P) * 100 : 0;\nconst pos = rangeUsd > 0 ? (P - L) / rangeUsd : 0.5;\n\nreturn [{\n  json: {\n    high_24h_usd: H,\n    low_24h_usd: L,\n    range_24h_usd: Number(rangeUsd.toFixed(2)),\n    range_24h_pct: Number(rangePct.toFixed(2)),\n    pos_24h: Number(pos.toFixed(2)),\n    volume_24h_usd: Number($json.market_data.total_volume.usd),\n    change_24h_pct: Number($json.market_data.price_change_percentage_24h)\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1984,
+        -80
+      ],
+      "id": "f19d7fc4-09d7-4a9a-9062-0f79396e3c62",
+      "name": "FN - Compute 24h Features"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1odC0rMHLJKMIySTbKxIPqFrw2xG40bybGNORLidNfLg",
+          "mode": "list",
+          "cachedResultName": "Alerta Bitcoin",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1odC0rMHLJKMIySTbKxIPqFrw2xG40bybGNORLidNfLg/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1303005479,
+          "mode": "list",
+          "cachedResultName": "runs_log",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1odC0rMHLJKMIySTbKxIPqFrw2xG40bybGNORLidNfLg/edit#gid=1303005479"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "ts_now": "={{ $node[\"CFG - Threshold & Payload IA\"].json.timestamp_now }}",
+            "price_now": "={{ $node[\"CFG - Threshold & Payload IA\"].json.price_current_usd }}",
+            "pct_change_1h": "={{ $node[\"CFG - Threshold & Payload IA\"].json.change_1h_pct }}",
+            "price_prev": "={{ $node[\"CFG - Threshold & Payload IA\"].json.price_previous_usd }}",
+            "status": "={{ $node[\"FN - Parse LLM1\"].json.status }}",
+            "direction": "={{ $node[\"FN - Parse LLM1\"].json.direction }}",
+            "range_24h_pct": "={{ $node[\"FN - Compute 24h Features\"].json.range_24h_pct ?? \"\" }}",
+            "pos_24h": "={{ $node[\"FN - Compute 24h Features\"].json.pos_24h ?? \"\" }}",
+            "result": "SUCCESS"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "ts_now",
+              "displayName": "ts_now",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "price_now",
+              "displayName": "price_now",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "price_prev",
+              "displayName": "price_prev",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "pct_change_1h",
+              "displayName": "pct_change_1h",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "direction",
+              "displayName": "direction",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "range_24h_pct",
+              "displayName": "range_24h_pct",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "pos_24h",
+              "displayName": "pos_24h",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "result",
+              "displayName": "result",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "error_message",
+              "displayName": "error_message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        2944,
+        80
+      ],
+      "id": "67c440ec-feae-43a1-8ede-8a98ab6caf31",
+      "name": "LOG - Append run",
+      "retryOnFail": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "9hdJKFfEKUC4VsEA",
+          "name": "Google Sheets account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Calcular variación 1h": {
+      "main": [
+        [
+          {
+            "node": "CFG - Threshold & Payload IA",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "API Coinbase": {
+      "main": [
+        [
+          {
+            "node": "Normalización del precio",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Primera ejecución?": {
+      "main": [
+        [
+          {
+            "node": "Primera actualización de datos",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Calcular variación 1h",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Primera actualización de datos": {
+      "main": [
+        [
+          {
+            "node": "Email inicialización",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Leer la fila existente": {
+      "main": [
+        [
+          {
+            "node": "Normalizar array",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Trigger c/1h": {
+      "main": [
+        [
+          {
+            "node": "API Coinbase",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalización del precio": {
+      "main": [
+        [
+          {
+            "node": "Leer la fila existente",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Email inicialización": {
+      "main": [
+        []
+      ]
+    },
+    "Normalizar array": {
+      "main": [
+        [
+          {
+            "node": "Primera ejecución?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CFG - Threshold & Payload IA": {
+      "main": [
+        [
+          {
+            "node": "LLM1 - Classifier (Reglado)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "LLM1 - Classifier (Reglado)": {
+      "main": [
+        [
+          {
+            "node": "FN - Parse LLM1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "FN - Parse LLM1": {
+      "main": [
+        [
+          {
+            "node": "IF - ¿Alerta? (LLM1)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF - ¿Alerta? (LLM1)": {
+      "main": [
+        [
+          {
+            "node": "HTTP - CoinGecko 24h",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "LLM3 - Normal Insight",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "LLM2 - Explain & Summary (Alerta)": {
+      "main": [
+        [
+          {
+            "node": "FN - Parse LLM2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "FN - Parse LLM2": {
+      "main": [
+        [
+          {
+            "node": "Email Alerta1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "LLM3 - Normal Insight": {
+      "main": [
+        [
+          {
+            "node": "FN - Parse LLM3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "FN - Parse LLM3": {
+      "main": [
+        [
+          {
+            "node": "Email normal1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Email Alerta1": {
+      "main": [
+        [
+          {
+            "node": "Actualización de datos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Email normal1": {
+      "main": [
+        [
+          {
+            "node": "Actualización de datos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP - CoinGecko 24h": {
+      "main": [
+        [
+          {
+            "node": "FN - Compute 24h Features",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "FN - Compute 24h Features": {
+      "main": [
+        [
+          {
+            "node": "LLM2 - Explain & Summary (Alerta)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Actualización de datos": {
+      "main": [
+        [
+          {
+            "node": "LOG - Append run",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": true,
+    "timeSavedMode": "fixed",
+    "timezone": "America/Argentina/Buenos_Aires",
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "versionId": "a0a9daa9-6784-417e-a63c-5f0561b79d2c",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "ba0f6cfbbfd0623de6004eca5108049be6a36a0fa32c5a30b7798c21c59ac86d"
+  },
+  "id": "-TMzr2mNU3HhyuJ4lcMao",
+  "tags": []
+}

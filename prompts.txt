@@ -1,0 +1,70 @@
+Nodo "LLM1 - Classifier (Reglado)":
+ Prompt "User Messages": 
+	"abs_change_1h_pct={{ $json.abs_change_1h_pct }}
+	change_1h_pct={{ $json.change_1h_pct }}
+	threshold_pct={{ $json.threshold_pct }}
+
+	Reglas:
+	- status="ALERTA" si abs_change_1h_pct >= threshold_pct, si no "NORMAL"
+	- direction="UP" si change_1h_pct>0, "DOWN" si <0, "FLAT" si =0
+	Respondé solo con el JSON."
+
+ Prompt "System Messages":
+	"Respondé únicamente JSON válido en UNA sola línea. 
+	Prohibido Markdown, backticks o texto fuera del JSON. 
+	Formato exacto: {"status":"NORMAL","direction":"UP"} 
+	Valores permitidos: - status: "ALERTA" o "NORMAL" - direction: "UP" | "DOWN" | "FLAT""
+
+Nodo "LLM2 - Explain & Summary (Alerta)":
+ Prompt "User Messages":
+ 	"Datos 1h:
+		- price_current_usd: {{ $node["CFG - Threshold & Payload IA"].json.price_current_usd }}
+		- price_previous_usd: {{ $node["CFG - Threshold & Payload IA"].json.price_previous_usd }}
+		- diff_usd: {{ $node["CFG - Threshold & Payload IA"].json.diff_usd }}
+		- change_1h_pct: {{ $node["CFG - Threshold & Payload IA"].json.change_1h_pct }}
+		- direction_1h: {{ $node["FN - Parse LLM1"].json.direction }}
+
+	Contexto 24h (CoinGecko):
+		- high_24h_usd: {{ $node["FN - Compute 24h Features"].json.high_24h_usd }}
+		- low_24h_usd: {{ $node["FN - Compute 24h Features"].json.low_24h_usd }}
+		- range_24h_pct: {{ $node["FN - Compute 24h Features"].json.range_24h_pct }}
+		- pos_24h: {{ $node["FN - Compute 24h Features"].json.pos_24h }}
+
+	Tareas (obligatorio cumplir):
+		1) summary: 1 línea. Debe citar 2 números: change_1h_pct y diff_usd.
+		2) context_24h: 1 línea usando range_24h_pct y pos_24h (explicá si está cerca del máximo o mínimo del día).
+		3) risk_flags: EXACTAMENTE 2 strings cortos (máx 10 palabras cada uno).
+		4) scenario_next_1h: 1 línea (condicional, sin afirmar hechos).
+		5) suggested_action: 1 línea prudente (informativa).
+
+	Respondé SOLO con el JSON en una sola línea con este formato exacto:
+		{"summary":"","context_24h":"","risk_flags":["",""],"scenario_next_1h":"","suggested_action":""}"
+
+Prompt "System Messages":
+ 	"Respondé SIEMPRE en español. 
+	REGLA ABSOLUTA: devolvé únicamente JSON válido en UNA sola línea. 
+	Prohibido Markdown, backticks, títulos, frases introductorias o texto fuera del JSON. 
+	No inventes noticias/eventos; las causas deben ser hipótesis genéricas. 
+	No des asesoramiento financiero personalizado; tono informativo y prudente.  
+	Formato EXACTO: {"summary":"","context_24h":"","risk_flags":["",""],"scenario_next_1h":"","suggested_action":""}"
+
+Nodo "LLM3 - Normal Insight":
+ Prompt "User Messages":
+ 	"change_1h_pct={{ $node["CFG - Threshold & Payload IA"].json.change_1h_pct }}
+	direction={{ $node["FN - Parse LLM1"].json.direction }}
+
+	Generá un insight corto (máx 12 palabras) sobre el movimiento.
+	Reglas:
+		- Debés incluir el valor change_1h_pct exactamente como aparece (sin redondear ni inventar).
+		- No podés mencionar ningún porcentaje distinto al de change_1h_pct.
+		- Idioma: español.
+	Respondé solo JSON en una línea:
+		{"insight":"..."}"
+
+Prompt "System Messages":
+ 	"Respondé SIEMPRE en español. 
+	Devolvé únicamente JSON válido en UNA sola línea. 
+	Prohibido texto fuera del JSON. Formato exacto: {"insight":""} 
+	El insight debe tener máx 10 palabras. 
+	Si mencionás un porcentaje, debe ser EXACTAMENTE el valor de change_1h_pct recibido."
+
